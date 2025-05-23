@@ -95,3 +95,9 @@ Portfolio React App (K8s Pod)
 
 This setup ensures end-to-end encrypted traffic while allowing Cloudflare to protect the public-facing endpoints and handle caching, WAF, and DDoS protection.
 
+---
+
+## 💬 Feedback
+
+If you have any questions, suggestions, or feedback, feel free to [reach out](mailto:poul0315@gmail.com) or open an issue or pull request. I'm always happy to connect and improve!
+
