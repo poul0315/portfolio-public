@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: portfolio-frontend-ingress
+  namespace: default # recommended not to create frontend-ingress in ingress-nginx namespace to isolate
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # your annotations
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - paul-nam.com
+    - www.paul-nam.com
+    secretName: frontend-tls
+  rules:
+  - host: paul-nam.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: portfolio-frontend-service
+            port:
+              number: 80

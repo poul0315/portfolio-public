@@ -1,0 +1,82 @@
+name: Deploy Frontend to RPI5 K3S Cluster
+
+on:
+  push:
+    branches:
+      - client/prod  # Change this to your frontend deployment branch
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted  # Running on your Raspberry Pi cluster
+
+    env:
+      IMAGE_NAME: ${{ secrets.FRONTEND_DOCKER_IMAGE_NAME }}
+      TAG: ${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.FRONTEND_DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.FRONTEND_DOCKER_PASSWORD }}
+        run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg REACT_APP_BACKEND_API_URL=${{ secrets.REACT_APP_BACKEND_API_URL }} \
+            -t ${{ secrets.FRONTEND_DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }} .
+          docker tag ${{ secrets.FRONTEND_DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }} ${{ secrets.FRONTEND_DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push ${{ secrets.FRONTEND_DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+          docker push ${{ secrets.FRONTEND_DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Set up kubectl
+        run: |
+          if [ ! -f /home/your_node/.kube/config ]; then
+            echo "${{ secrets.PROD_KUBECONFIG_DATA }}" | base64 --decode > /home/your_node/.kube/config
+            sudo chmod 600 /home/your_node/.kube/config
+          else
+            echo "Kubeconfig already exists, skipping setup."
+          fi
+        env:
+          KUBECONFIG: /home/your_node/.kube/config
+
+      # Detect changes in Kubernetes YAML files
+      - name: Check for changes in Kubernetes YAML files
+        id: changes-check
+        run: |
+          # Check for changes in Kubernetes YAML files
+          FILES_CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E 'k8s/frontend-(deployment|service|ingress).yaml' || true)
+          
+          # Output a flag indicating whether changes are detected
+          if [ -n "$FILES_CHANGED" ]; then
+            echo "Changes detected in Kubernetes YAML files:"
+            echo "$FILES_CHANGED"
+            echo "apply_changes=true" >> $GITHUB_ENV
+          else
+            echo "No changes detected in Kubernetes YAML files."
+            echo "apply_changes=false" >> $GITHUB_ENV
+          fi
+
+      # Apply the deployment and service YAML files for the frontend
+      - name: Apply Frontend Kubernetes configuration
+        if: env.apply_changes == 'true'
+        run: |
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/frontend-deployment.yaml
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/frontend-service.yaml
+          kubectl delete -f $GITHUB_WORKSPACE/k8s/frontend-ingress.yaml --ignore-not-found
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/frontend-ingress.yaml
+
+      - name: Deploy to Kubernetes
+        env:
+          IMAGE_TAG: ${{ secrets.FRONTEND_DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+        run: |
+          kubectl set image deployment/portfolio-frontend-deployment portfolio-frontend-container=$IMAGE_TAG
+
+      - name: Clean up old Docker images
+        run: docker image prune -f

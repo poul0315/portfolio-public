@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-load-balancer-config
+  namespace: default
+data:
+  default.conf: |
+    upstream ingress_nodes {
+        server server-node:12345;  # master node for HTTPS
+        server server-node:12345;  # worker node 1 for HTTPS
+        server server-node:12345;  # worker node 2 for HTTPS
+        server server-node:12345;   # worker node 3 for HTTPS
+    }
+
+    server {
+        listen 443 ssl;
+        server_name paul-nam.com www.paul-nam.com;
+
+        ssl_certificate /etc/nginx/ssl/tls.crt;
+        ssl_certificate_key /etc/nginx/ssl/tls.key;
+
+        location / {
+            proxy_pass https://ingress_nodes/;
+            proxy_ssl_server_name on;
+            proxy_ssl_verify off;  # Disable SSL certificate validation
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        error_page 404 /404.html;
+        location = /404.html {
+            root /usr/share/nginx/html;
+        }
+    }

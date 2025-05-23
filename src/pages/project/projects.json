@@ -1,0 +1,181 @@
+{
+    "data": [
+      {
+        "id": 1,
+        "title": "MukJa",
+        "blocks": [
+          {
+            "type": "text",
+            "content": "MukJa is a web app that helps people decide what to eat and share their recipes with the community. The goal is to reduce the time spent deciding what to eat and preparing meals."
+          },
+          {
+            "type": "image",
+            "content": "/assets/project1.png",
+            "caption": "MukJa Platform Preview"
+          },
+          {
+            "type": "text",
+            "content": "Nowadays, many people struggle to choose what to eat, which often leads us to eat out. Eating out frequently can add up and lead to spending a lot of money."
+          },
+          {
+            "type": "text",
+            "content": "MukJa motivates friends and family members to try new recipes that others have discovered and shared. It creates an environment where everyone is excited to try new recipes and cook."
+          },
+          {
+            "type": "image",
+            "content": "/assets/project1.2.png",
+            "caption": "Instruction Preview"
+          },
+          {
+            "type": "text",
+            "content": "When I started using this app, my family and I became over 80% more motivated to cook and share our cooking journeys with each other."
+          },
+          {
+            "type": "text",
+            "content": "Currently, the MukJa app is running privately. We are exploring opportunities to scale up and release it to the public in the near future!"
+          },
+          {
+            "type": "text",
+            "content": "Tech Stack Used:"
+          },
+          {
+            "type": "list",
+            "content": "Frontend: React"
+          },
+          {
+            "type": "list",
+            "content": "Backend: Flask"
+          },
+          {
+            "type": "list",
+            "content": "Database: PostgreSQL"
+          },
+          {
+            "type": "image",
+            "content": "/assets/project1.1.png",
+            "caption": "MukJa Database Schema Preview"
+          },
+          {
+            "type": "text",
+            "content": "I leveraged snowflake schema style to store data more efficiently."
+          },
+          {
+            "type": "text",
+            "content": "After developing MukJa, I was very happy but lost a bit of my hair 😅. Losing hair feels like I'm becoming a true developer 👨‍💻"
+          },
+          {
+            "type": "text",
+            "content": "Anyway, everyone happy coding!"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "RPI5 Kubernetes Cluster",
+        "blocks": [
+          {
+            "type": "text",
+            "content": "This project involves setting up a local Kubernetes cluster using Raspberry Pi 5 devices."
+          },
+          {
+            "type": "image",
+            "content": "/assets/project2.png",
+            "caption": "Raspberry Pi Cluster in action"
+          },
+          {
+            "type": "text",
+            "content": "For my Kubernetes and Docker setup, I started by choosing k3s for its lightweight and fast deployment, making it an ideal choice for development and smaller-scale production environments. I manually configured both master and worker nodes, creating a resilient Kubernetes cluster with minimal overhead. Once the core cluster was running, I implemented Cert-Manager to automate the creation and renewal of HTTPS certificates, ensuring secure communication across all services."
+          },
+          {
+            "type": "image",
+            "content": "/assets/project2.1.png",
+            "caption": "Cert Manager & Let's Encrypt"
+          },
+          {
+            "type": "text",
+            "content": "To manage frontend traffic, I initially used Traefik as my ingress controller, but I encountered challenges in customizing certain behaviors, such as handling redirects and rate limiting at the ingress level. As a result, I switched to NGINX Ingress, which provided a more intuitive and flexible way to manage these requirements. I set up annotations for tasks like enforcing SSL and redirecting traffic from www to non-www domains, ensuring consistent behavior. I also configured rate limiting on the ingress to protect the services from excessive requests."
+          },
+          {
+            "type": "code",
+            "language": "yaml",
+            "content": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: your-frontend-ingress\n  namespace: default\n  annotations:\n    Your annotations ...  \nspec:\n  ingressClassName: nginx\n  tls:\n  - hosts:\n    - your-domain.com\n    - www.your-domain.com\n    secretName: your-frontend-tls\n  rules:\n  - host: your-domain.com\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: your-frontend-service\n            port:\n              number: 80",
+            "caption": "YAML manifest for simple frontend ingress setup"
+          },
+          {
+            "type": "text",
+            "content": "For service-to-service communication, I created a custom Kubernetes service to control how pods interacted, ensuring reliability and clean communication within the cluster. I also wrote a custom deployment file to manage the lifecycle of pods, controlling scaling, health checks, and restart policies to maintain system stability."
+          },
+          {
+            "type": "code",
+            "language": "yaml",
+            "content": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: your-frontend-deployment\nspec:\n  replicas: #\n  selector:\n    matchLabels:\n      app: your-frontend\n  template:\n    metadata:\n      labels:\n        app: your-frontend\n    spec:\n      containers:\n      - name: your-frontend-container\n        image: your-repo/your-frontend:latest\n        ports:\n        - containerPort: 80",
+            "caption": "YAML manifest for simple deployment setup"
+          },
+          {
+            "type": "text",
+            "content": "To prepare for future traffic spikes, I configured a Horizontal Pod Autoscaler (HPA) using a YAML manifest. While my websites haven't yet experienced significant traffic requiring autoscaling, the HPA is set to monitor CPU utilization and scale pods accordingly when thresholds are exceeded. This setup ensures that the cluster can handle potential growth without manual intervention."
+          },
+          {
+            "type": "code",
+            "language": "yaml",
+            "content": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: your-hpa\n  namespace: default\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: your-deployment\n  minReplicas: #\n  maxReplicas: ##\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: #",
+            "caption": "YAML manifest for simple deployment setup"
+          },
+          {
+            "type": "text",
+            "content": "To streamline the development process, I built a CI/CD pipeline using GitHub Actions. This pipeline automated the build, test, and deployment stages, significantly improving efficiency. It eliminated the need for manual git pull commands and restarts, allowing for faster iterations and fewer errors. The pipeline built Docker images, pushed them to a container registry, and deployed them directly to the Kubernetes cluster."
+          },
+          {
+            "type": "image",
+            "content": "/assets/project2.2.png",
+            "caption": "Example of How Github Action Build & Deploy"
+          },
+          {
+            "type": "text",
+            "content": "One of the most valuable features of Kubernetes was its zero-downtime deployments. With rolling updates and pod orchestration, services remained available even during updates and scaling events, improving user experience and reliability."
+          },
+          {
+            "type": "text",
+            "content": "During this process, I also encountered and resolved single-page application (SPA) issues with NGINX. Since NGINX doesn’t natively recognize paths like /project/1, it initially returned 404 errors for those routes. I configured it to serve index.html for all unknown paths, ensuring smooth navigation across the SPA without breaking the user experience."
+          },
+          {
+            "type": "image",
+            "content": "/assets/project2.3.png",
+            "caption": "Github Action in Action (Lots of Error and Fix)"
+          },
+          {
+            "type": "text",
+            "content": "In the end, this setup allowed me to host and manage my portfolio site along with multiple other websites on my Kubernetes cluster. I gained deep hands-on experience with Kubernetes, Docker, and scalable infrastructure, while also learning practical solutions for real-world challenges in orchestration, deployment, and high-availability architecture."
+          },
+          {
+            "type": "text",
+            "content": "Everyone happy coding!"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Text to Emoji Converter",
+        "blocks": [
+          {
+            "type": "text",
+            "content": "A simple web app that converts plain text into fun emojis!"
+          },
+          {
+            "type": "image",
+            "content": "/assets/project3.png",
+            "caption": "Emoji converter preview"
+          },
+          {
+            "type": "text",
+            "content": "Development tool used: NextJs, OpenAI API, and Typescript"
+          },
+          {
+            "type": "text",
+            "content": "Caption to Emoji is powered by OpenAI API."
+          }
+        ]
+      }
+    ]
+  }
+  

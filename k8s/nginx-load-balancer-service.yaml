@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-load-balancer
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+  - name: https
+    port: 443
+    targetPort: 443
+    nodePort: 12345  # NodePort for HTTPS traffic
+  selector:
+    app: nginx-load-balancer
