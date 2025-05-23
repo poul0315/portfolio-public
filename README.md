@@ -1,4 +1,4 @@
-# 🌐 Portfolio Website Deployment (K3s + CI/CD)
+# 🖥️ Portfolio Website Deployment (K3s + CI/CD)
 
 This repository contains a **sanitized replica** of my personal portfolio website deployment, designed to showcase a **production-grade DevOps workflow** using Kubernetes, GitHub Actions, Docker, and TLS termination via Cloudflare and Let's Encrypt.
 
@@ -25,7 +25,7 @@ The portfolio website is built using **React** and **Tailwind CSS**, deployed on
 
 ---
 
-## 🧩 Key Features
+## 🔑 Key Features
 
 ### ✅ CI/CD Pipeline Highlights (`.github/workflows/pipeline.yaml`)
 
